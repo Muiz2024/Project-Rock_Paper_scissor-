@@ -1,0 +1,10 @@
+tkinter and pyinstaller
+
+'''
+Github Command
+git init
+git add .version
+git commit -m "version 1.0/0"
+2nd Last
+git push -o origin master
+'''
