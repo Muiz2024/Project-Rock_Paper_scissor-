@@ -7,10 +7,24 @@ try:
     app = game_gui.RockPaperScissorsGUI(root)
     print("Title:", root.title())
     print("Logo loaded:", app.logo_image is not None)
-    print("Logo full loaded:", app.logo_image_full is not None)
-    root.after(1200, root.destroy)
+    print("Canvas items:", len(app.canvas.find_all()))
+
+    app.on_user_select(0)
+    print("After select -> states:", [b["state"] for b in app.choice_buttons])
+    print("status text:", app.canvas.itemcget(app.status_id, "text"))
+
+    app._computer_turn()
+    print("result:", app.canvas.itemcget(app.result_id, "text"))
+    print("result fill:", app.canvas.itemcget(app.result_id, "fill"))
+    print("states after turn:", [b["state"] for b in app.choice_buttons])
+
+    app.restart_game()
+    print("after restart user:", app.user_choice)
+    print("after restart result:", repr(app.canvas.itemcget(app.result_id, "text")))
+
+    root.after(800, root.destroy)
     root.mainloop()
-    print("GUI smoke test with logo PASSED")
+    print("Dark theme smoke test PASSED")
 except Exception:
     traceback.print_exc()
     raise

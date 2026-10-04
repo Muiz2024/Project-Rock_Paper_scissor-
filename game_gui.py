@@ -3,6 +3,7 @@ import sys
 import random
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import font as tkfont
 
 from PIL import Image, ImageTk
 
@@ -20,23 +21,36 @@ CHOICES = ["Rock", "Paper", "Scissor"]
 EMOJI = ["\U0001FAA8", "\U0001F4DD", "\u2702\uFE0F"]
 IMG_FILES = ["rock.png", "paper.png", "scissor.png"]
 
-BG_COLOR = "#f4f6fb"
-TITLE_COLOR = "#2c3e50"
-ACCENT = "#2980b9"
-USER_COLOR = "#27ae60"
-COMP_COLOR = "#e74c3c"
+GRADIENT_TOP = (15, 23, 42)
+GRADIENT_BOTTOM = (49, 46, 129)
+
+HEADING = "#FFFFFF"
+TEXT = "#CBD5E1"
+DIM = "#94A3B8"
+BTN_BG = "#1E293B"
+BTN_ACTIVE = "#334155"
+BTN_FG = "#E2E8F0"
+BTN_BORDER = "#334155"
+RESTART_BG = "#4F46E5"
+RESTART_ACTIVE = "#4338CA"
+ACCENT = "#818CF8"
+SEPARATOR = "#475569"
+
 RESULT_COLORS = {
-    "USER WINS!": "#27ae60",
-    "COMPUTER WINS!": "#e74c3c",
-    "DRAW!": "#f39c12",
+    "USER WINS!": "#22C55E",
+    "COMPUTER WINS!": "#EF4444",
+    "DRAW!": "#F59E0B",
 }
+
+WIN_W = 560
+WIN_H = 680
 
 
 class RockPaperScissorsGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Rock Paper Scissors")
-        self.root.configure(bg=BG_COLOR)
+        self.root.configure(bg="#0F172A")
         self.root.resizable(False, False)
 
         self.user_choice = None
@@ -74,111 +88,122 @@ class RockPaperScissorsGUI:
         except tk.TclError:
             pass
 
+    def _draw_gradient(self):
+        top = GRADIENT_TOP
+        bottom = GRADIENT_BOTTOM
+        for y in range(WIN_H):
+            t = y / (WIN_H - 1)
+            r = int(top[0] + (bottom[0] - top[0]) * t)
+            g = int(top[1] + (bottom[1] - top[1]) * t)
+            b = int(top[2] + (bottom[2] - top[2]) * t)
+            self.canvas.create_line(0, y, WIN_W, y, fill="#%02x%02x%02x" % (r, g, b))
+
     def _build_ui(self):
-        title_frame = tk.Frame(self.root, bg=BG_COLOR)
-        title_frame.grid(row=0, column=0, columnspan=3, pady=(15, 5))
-
-        tk.Label(
-            title_frame, image=self.logo_image, bg=BG_COLOR,
-        ).pack(side=tk.LEFT, padx=(10, 10))
-
-        tk.Label(
-            title_frame,
-            text="ROCK PAPER SCISSORS",
-            font=("Helvetica", 26, "bold"),
-            fg=TITLE_COLOR,
-            bg=BG_COLOR,
-        ).pack(side=tk.LEFT)
-
-        sep_top = tk.Frame(self.root, height=3, bg=ACCENT, width=520)
-        sep_top.grid(row=1, column=0, columnspan=3, pady=(0, 15))
-
-        tk.Label(
-            self.root, text="Your Choice", font=("Helvetica", 14, "bold"),
-            fg=USER_COLOR, bg=BG_COLOR,
-        ).grid(row=2, column=0, pady=(0, 5))
-        tk.Label(
-            self.root, text="Computer Choice", font=("Helvetica", 14, "bold"),
-            fg=COMP_COLOR, bg=BG_COLOR,
-        ).grid(row=2, column=2, pady=(0, 5))
-
-        self.user_img_label = tk.Label(self.root, image=self.question_image, bg=BG_COLOR)
-        self.user_img_label.grid(row=3, column=0, padx=30)
-
-        self.user_text = tk.Label(
-            self.root, text="", font=("Helvetica", 12), fg=TITLE_COLOR, bg=BG_COLOR,
+        self.canvas = tk.Canvas(
+            self.root, width=WIN_W, height=WIN_H,
+            highlightthickness=0, bd=0,
         )
-        self.user_text.grid(row=4, column=0, pady=(5, 10))
+        self.canvas.pack(fill="both", expand=True)
+        self._draw_gradient()
 
-        self.comp_img_label = tk.Label(self.root, image=self.question_image, bg=BG_COLOR)
-        self.comp_img_label.grid(row=3, column=2, padx=30)
-
-        self.comp_text = tk.Label(
-            self.root, text="", font=("Helvetica", 12), fg=TITLE_COLOR, bg=BG_COLOR,
+        title_font = tkfont.Font(family="Helvetica", size=24, weight="bold")
+        title_text = "ROCK PAPER SCISSORS"
+        text_w = title_font.measure(title_text)
+        logo_w = 56
+        gap = 12
+        group_w = logo_w + gap + text_w
+        start_x = (WIN_W - group_w) / 2
+        self.canvas.create_image(start_x, 28, image=self.logo_image, anchor="nw")
+        self.canvas.create_text(
+            start_x + logo_w + gap, 56, text=title_text,
+            font=("Helvetica", 24, "bold"), fill=HEADING, anchor="w",
         )
-        self.comp_text.grid(row=4, column=2, pady=(5, 10))
 
-        sep_mid = tk.Frame(self.root, height=2, bg="#bdc3c7", width=520)
-        sep_mid.grid(row=5, column=0, columnspan=3, pady=(10, 10), padx=10)
+        self.canvas.create_line(40, 100, 520, 100, fill=SEPARATOR, width=2)
 
-        self.result_label = tk.Label(
-            self.root, text="", font=("Helvetica", 30, "bold"),
-            fg=TITLE_COLOR, bg=BG_COLOR,
+        self.canvas.create_text(
+            140, 120, text="Your Choice",
+            font=("Helvetica", 13, "bold"), fill=HEADING, anchor="center",
         )
-        self.result_label.grid(row=6, column=0, columnspan=3, pady=(10, 10))
-
-        self.status_label = tk.Label(
-            self.root, text="Click a choice to play!", font=("Helvetica", 12),
-            fg="#7f8c8d", bg=BG_COLOR,
+        self.canvas.create_text(
+            420, 120, text="Computer Choice",
+            font=("Helvetica", 13, "bold"), fill=HEADING, anchor="center",
         )
-        self.status_label.grid(row=7, column=0, columnspan=3, pady=(0, 10))
 
-        btn_frame = tk.Frame(self.root, bg=BG_COLOR)
-        btn_frame.grid(row=8, column=0, columnspan=3, pady=(5, 5))
+        self.user_img_id = self.canvas.create_image(
+            140, 135, image=self.question_image, anchor="n",
+        )
+        self.comp_img_id = self.canvas.create_image(
+            420, 135, image=self.question_image, anchor="n",
+        )
 
+        self.user_text_id = self.canvas.create_text(
+            140, 255, text="", font=("Helvetica", 12), fill=TEXT, anchor="center",
+        )
+        self.comp_text_id = self.canvas.create_text(
+            420, 255, text="", font=("Helvetica", 12), fill=TEXT, anchor="center",
+        )
+
+        self.canvas.create_line(40, 290, 520, 290, fill=SEPARATOR, width=1)
+
+        self.result_id = self.canvas.create_text(
+            280, 330, text="", font=("Helvetica", 28, "bold"),
+            fill=HEADING, anchor="center",
+        )
+
+        self.status_id = self.canvas.create_text(
+            280, 378, text="Click a choice to play!",
+            font=("Helvetica", 12), fill=DIM, anchor="center",
+        )
+
+        btn_y = 405
+        btn_xs = [65, 215, 365]
         for idx, name in enumerate(CHOICES):
             btn = tk.Button(
-                btn_frame,
+                self.canvas,
                 image=self.photo_images[idx],
                 text=f"{EMOJI[idx]} {name}",
                 compound=tk.TOP,
                 font=("Helvetica", 11, "bold"),
-                fg=TITLE_COLOR,
-                bg="#ffffff",
-                activebackground="#d6eaf8",
-                relief=tk.RAISED,
-                bd=3,
+                fg=BTN_FG,
+                bg=BTN_BG,
+                activebackground=BTN_ACTIVE,
+                activeforeground="#FFFFFF",
+                relief=tk.FLAT,
+                bd=0,
                 padx=10,
-                pady=6,
+                pady=8,
                 cursor="hand2",
+                highlightthickness=2,
+                highlightbackground=BTN_BORDER,
+                highlightcolor=ACCENT,
                 command=lambda i=idx: self.on_user_select(i),
             )
-            btn.grid(row=0, column=idx, padx=15)
+            self.canvas.create_window(btn_xs[idx], btn_y, window=btn, anchor="nw", width=130)
             self.choice_buttons.append(btn)
 
         restart_btn = tk.Button(
-            self.root,
+            self.canvas,
             text="Restart Game",
             font=("Helvetica", 13, "bold"),
-            fg="#ffffff",
-            bg=ACCENT,
-            activebackground="#1f6391",
-            relief=tk.RAISED,
-            bd=3,
+            fg="#FFFFFF",
+            bg=RESTART_BG,
+            activebackground=RESTART_ACTIVE,
+            activeforeground="#FFFFFF",
+            relief=tk.FLAT,
+            bd=0,
             padx=20,
-            pady=8,
+            pady=10,
             cursor="hand2",
+            highlightthickness=0,
             command=self.restart_game,
         )
-        restart_btn.grid(row=9, column=0, columnspan=3, pady=(15, 5))
+        self.canvas.create_window(195, 585, window=restart_btn, anchor="nw", width=170)
 
-        tk.Label(
-            self.root,
-            text="developed by: Muhammad Muiz Hamza Ahmed",
-            font=("Helvetica", 10, "italic"),
-            fg="#95a5a6",
-            bg=BG_COLOR,
-        ).grid(row=10, column=0, columnspan=3, pady=(0, 15))
+        self.canvas.create_text(
+            280, 650, text="developed by: Muhammad Muiz Hamza Ahmed",
+            font=("Helvetica", 10, "italic"), fill=DIM, anchor="center",
+        )
 
     def _set_buttons_state(self, state):
         for btn in self.choice_buttons:
@@ -195,29 +220,36 @@ class RockPaperScissorsGUI:
         self.user_choice = choice
         self._set_buttons_state(tk.DISABLED)
 
-        self.user_img_label.configure(image=self.photo_images[choice])
-        self.user_text.configure(text=f"You Chose: {EMOJI[choice]} {CHOICES[choice]}")
+        self.canvas.itemconfig(self.user_img_id, image=self.photo_images[choice])
+        self.canvas.itemconfig(
+            self.user_text_id,
+            text=f"You Chose: {EMOJI[choice]} {CHOICES[choice]}",
+        )
 
-        self.comp_img_label.configure(image=self.question_image)
-        self.comp_text.configure(text="")
-        self.result_label.configure(text="")
-        self.status_label.configure(text="Computer is thinking...", fg=ACCENT)
+        self.canvas.itemconfig(self.comp_img_id, image=self.question_image)
+        self.canvas.itemconfig(self.comp_text_id, text="")
+        self.canvas.itemconfig(self.result_id, text="")
+        self.canvas.itemconfig(self.status_id, text="Computer is thinking...", fill=ACCENT)
 
         self.root.after(3000, self._computer_turn)
 
     def _computer_turn(self):
         self.computer_choice = random.randint(0, 2)
 
-        self.comp_img_label.configure(image=self.photo_images[self.computer_choice])
-        self.comp_text.configure(
-            text=f"Computer Chose: {EMOJI[self.computer_choice]} {CHOICES[self.computer_choice]}"
+        self.canvas.itemconfig(self.comp_img_id, image=self.photo_images[self.computer_choice])
+        self.canvas.itemconfig(
+            self.comp_text_id,
+            text=f"Computer Chose: {EMOJI[self.computer_choice]} {CHOICES[self.computer_choice]}",
         )
 
         result = self._decide_winner(self.user_choice, self.computer_choice)
-        self.result_label.configure(
-            text=result, fg=RESULT_COLORS.get(result, TITLE_COLOR)
+        self.canvas.itemconfig(
+            self.result_id, text=result, fill=RESULT_COLORS.get(result, HEADING),
         )
-        self.status_label.configure(text="Round complete! Click Restart to play again.", fg="#7f8c8d")
+        self.canvas.itemconfig(
+            self.status_id,
+            text="Round complete! Click Restart to play again.", fill=DIM,
+        )
 
         self._set_buttons_state(tk.NORMAL)
 
@@ -243,12 +275,12 @@ class RockPaperScissorsGUI:
         self.user_choice = None
         self.computer_choice = None
 
-        self.user_img_label.configure(image=self.question_image)
-        self.user_text.configure(text="")
-        self.comp_img_label.configure(image=self.question_image)
-        self.comp_text.configure(text="")
-        self.result_label.configure(text="", fg=TITLE_COLOR)
-        self.status_label.configure(text="Click a choice to play!", fg="#7f8c8d")
+        self.canvas.itemconfig(self.user_img_id, image=self.question_image)
+        self.canvas.itemconfig(self.user_text_id, text="")
+        self.canvas.itemconfig(self.comp_img_id, image=self.question_image)
+        self.canvas.itemconfig(self.comp_text_id, text="")
+        self.canvas.itemconfig(self.result_id, text="", fill=HEADING)
+        self.canvas.itemconfig(self.status_id, text="Click a choice to play!", fill=DIM)
 
         self._set_buttons_state(tk.NORMAL)
 
